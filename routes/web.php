@@ -8,12 +8,16 @@ use App\Http\Controllers\Admin\IssueController;
 use App\Http\Controllers\Admin\AdminLoginController;
 use Illuminate\Support\Facades\Route;
 
+
+Route::Get('/', function(){return view('admin.auth.login');});
+
 // Admin Routes
 Route::prefix('admin')->group(function () {
     // Authentication Routes
-    Route::get('/admin/login', [AdminLoginController::class, 'showLoginForm'])->name('admin.login');
-Route::post('/admin/login', [dminLoginController::class, 'login']);
-Route::post('/admin/logout', [AdminLoginController::class, 'logout'])->name('admin.logout');
+    Route::get('/login', [AuthController::class, 'showLoginForm'])->name('admin.login');
+Route::post('/login', [AuthController::class, 'login']) ->name('admin.login.post');
+Route::post('/logout', [AuthController::class, 'logout'])->name('admin.logout');
+
 
     // Protected Admin Routes
     Route::middleware('auth:admin')->group(function () {
