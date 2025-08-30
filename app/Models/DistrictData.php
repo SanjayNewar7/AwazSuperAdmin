@@ -4,6 +4,7 @@
 namespace App\Models;
 
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 
 class DistrictData
 {
@@ -13,19 +14,19 @@ class DistrictData
     {
         if (self::$districtRegionWardMap === null) {
             self::$districtRegionWardMap = [
-                "Kathmandu" => [
-                    "Kathmandu Metropolitan City" => 32,
-                    "Budhanilkantha Municipality" => 13,
-                    "Chandragiri Municipality" => 15,
-                    "Gokarneshwor Municipality" => 9,
-                    "Kageshwori Manohara Municipality" => 9,
-                    "Kirtipur Municipality" => 10,
-                    "Nagarjun Municipality" => 10,
-                    "Shankharapur Municipality" => 9,
-                    "Tarakeshwor Municipality" => 10,
-                    "Tokha Municipality" => 11,
-                    "Dakshinkali Rural Municipality" => 7,
-                ],
+                // "Kathmandu" => [
+                //     "Kathmandu Metropolitan City" => 32,
+                //     "Budhanilkantha Municipality" => 13,
+                //     "Chandragiri Municipality" => 15,
+                //     "Gokarneshwor Municipality" => 9,
+                //     "Kageshwori Manohara Municipality" => 9,
+                //     "Kirtipur Municipality" => 10,
+                //     "Nagarjun Municipality" => 10,
+                //     "Shankharapur Municipality" => 9,
+                //     "Tarakeshwor Municipality" => 10,
+                //     "Tokha Municipality" => 11,
+                //     "Dakshinkali Rural Municipality" => 7,
+                // ],
                 "Lalitpur" => [
                     "Lalitpur Metropolitan City" => 29,
                     "Godawari Municipality" => 14,
@@ -110,11 +111,12 @@ class DistrictData
     }
 
     public static function getRegions($district)
-    {
-        self::initialize();
-        return isset(self::$districtRegionWardMap[$district]) ?
-            array_keys(self::$districtRegionWardMap[$district]) : [];
-    }
+{
+    self::initialize();
+    Log::info('DistrictRegionWardMap: ' . json_encode(self::$districtRegionWardMap)); // Debug
+    return isset(self::$districtRegionWardMap[$district]) ?
+        array_keys(self::$districtRegionWardMap[$district]) : [];
+}
 
     public static function getWards($district, $region)
     {

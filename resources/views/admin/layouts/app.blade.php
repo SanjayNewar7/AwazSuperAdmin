@@ -988,26 +988,25 @@
                 <div class="analytics-section">
                     <div class="section-header">
                         <h2>Issue Analytics</h2>
-                        <div class="filter-controls">
-                            <select id="districtFilter">
-                                <option value="">All Districts</option>
-                                @foreach($districts as $district)
-                                    <option value="{{ $district }}">{{ $district }}</option>
-                                @endforeach
-                            </select>
-                            <select id="regionFilter">
-                                <option value="">All Regions</option>
-                                <option value="urban">Urban</option>
-                                <option value="rural">Rural</option>
-                            </select>
-                            <select id="wardFilter">
-                                <option value="">All Wards</option>
-                                @for($i = 1; $i <= 35; $i++)
-                                    <option value="{{ $i }}">Ward {{ $i }}</option>
-                                @endfor
-                            </select>
-                            <input type="date" id="dateFilter">
-                        </div>
+                       <div class="filter-controls">
+    <select id="districtFilter">
+        <option value="">All Districts</option>
+        @foreach($districts as $district)
+            <option value="{{ $district }}">{{ $district }}</option>
+        @endforeach
+    </select>
+
+    <select id="regionFilter">
+        <option value="">All Regions</option>
+    </select>
+
+    <select id="wardFilter">
+        <option value="">All Wards</option>
+    </select>
+
+    <input type="date" id="dateFilter">
+</div>
+
                     </div>
 
                     <div class="chart-container">
@@ -1804,168 +1803,227 @@
         </div>
     </div>
 
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Menu functionality
-        const menuItems = document.querySelectorAll('.menu-item');
-        const contentSections = document.querySelectorAll('.content-section');
+  <script>
+document.addEventListener('DOMContentLoaded', function() {
+    // =============================
+    // Menu functionality
+    // =============================
+    const menuItems = document.querySelectorAll('.menu-item');
+    const contentSections = document.querySelectorAll('.content-section');
 
-        menuItems.forEach(item => {
-            item.addEventListener('click', function() {
-                if (this.id === 'logout-btn') {
-                    if (confirm('Are you sure you want to logout?')) {
-                        window.location.href = '{{ route("admin.logout") }}';
+    menuItems.forEach(item => {
+        item.addEventListener('click', function() {
+            if (this.id === 'logout-btn') {
+                if (confirm('Are you sure you want to logout?')) {
+                    window.location.href = '{{ route("admin.logout") }}';
+                }
+                return;
+            }
+
+            // Remove active class
+            menuItems.forEach(menuItem => menuItem.classList.remove('active'));
+            contentSections.forEach(section => section.classList.remove('active'));
+
+            // Activate selected
+            this.classList.add('active');
+            const sectionId = this.getAttribute('data-section') + '-section';
+            document.getElementById(sectionId).classList.add('active');
+        });
+    });
+
+    // =============================
+    // Dynamic District -> Region -> Ward Filters
+    // =============================
+    const districtFilter = document.getElementById('districtFilter');
+    const regionFilter   = document.getElementById('regionFilter');
+    const wardFilter     = document.getElementById('wardFilter');
+
+    // District change -> fetch regions
+    districtFilter.addEventListener('change', function () {
+        const district = this.value;
+        regionFilter.innerHTML = '<option value="">All Regions</option>';
+        wardFilter.innerHTML   = '<option value="">All Wards</option>';
+
+        if (district) {
+            fetch(`/admin/dashboard/regions?district=${encodeURIComponent(district)}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (Array.isArray(data)) {
+                        data.forEach(region => {
+                            const opt = document.createElement('option');
+                            opt.value = region.id ?? region; // backend may send {id, name} or just string
+                            opt.textContent = region.name ?? region;
+                            regionFilter.appendChild(opt);
+                        });
                     }
-                    return;
-                }
-
-                // Remove active class from all menu items and content sections
-                menuItems.forEach(menuItem => menuItem.classList.remove('active'));
-                contentSections.forEach(section => section.classList.remove('active'));
-
-                // Add active class to clicked menu item
-                this.classList.add('active');
-
-                // Show corresponding content section
-                const sectionId = this.getAttribute('data-section') + '-section';
-                document.getElementById(sectionId).classList.add('active');
-            });
-        });
-
-        // Modal functionality
-        const modals = document.querySelectorAll('.modal');
-        const notifyButtons = document.querySelectorAll('.btn-notify, #compose-notification');
-        const viewButtons = document.querySelectorAll('.btn-view[data-issue]');
-        const closeButtons = document.querySelectorAll('.close-modal');
-
-        notifyButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                document.getElementById('notificationModal').classList.add('show');
-            });
-        });
-
-        viewButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                document.getElementById('issueDetailModal').classList.add('show');
-            });
-        });
-
-        closeButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                modals.forEach(modal => {
-                    modal.classList.remove('show');
-                });
-            });
-        });
-
-        window.addEventListener('click', (event) => {
-            modals.forEach(modal => {
-                if (event.target === modal) {
-                    modal.classList.remove('show');
-                }
-            });
-        });
-
-        // Chart initialization
-        function initializeCharts(issueTypes, issueTrends) {
-            const issueTypeCtx = document.getElementById('issueTypeChart').getContext('2d');
-            if (window.issueTypeChart) window.issueTypeChart.destroy();
-            window.issueTypeChart = new Chart(issueTypeCtx, {
-                type: 'doughnut',
-                data: {
-                    labels: Object.keys(issueTypes),
-                    datasets: [{
-                        data: Object.values(issueTypes),
-                        backgroundColor: ['#1a73e8', '#4caf50', '#ff9800', '#9c27b0', '#f44336', '#607d8b'],
-                        borderWidth: 0
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { position: 'right' } }
-                }
-            });
-
-            const issueTrendCtx = document.getElementById('issueTrendChart').getContext('2d');
-            if (window.issueTrendChart) window.issueTrendChart.destroy();
-            window.issueTrendChart = new Chart(issueTrendCtx, {
-                type: 'line',
-                data: {
-                    labels: issueTrends.map(item => item.date),
-                    datasets: [{
-                        label: 'Issues Reported',
-                        data: issueTrends.map(item => item.count),
-                        backgroundColor: 'rgba(26, 115, 232, 0.1)',
-                        borderColor: '#1a73e8',
-                        borderWidth: 2,
-                        tension: 0.3,
-                        fill: true
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: { y: { beginAtZero: true } }
-                }
-            });
-        }
-
-        // Initial data
-        initializeCharts({!! json_encode($issueTypes ?? []) !!}, {!! json_encode($issueTrends ?? []) !!});
-
-        // Image upload functionality
-        const imageUploadArea = document.getElementById('imageUploadArea');
-        const notificationImage = document.getElementById('notificationImage');
-        const uploadedImageContainer = document.getElementById('uploadedImageContainer');
-        const uploadedImage = document.getElementById('uploadedImage');
-        const removeImageBtn = document.getElementById('removeImageBtn');
-
-        if (imageUploadArea) {
-            imageUploadArea.addEventListener('click', () => notificationImage.click());
-            notificationImage.addEventListener('change', (e) => {
-                if (e.target.files && e.target.files[0]) {
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        uploadedImage.src = e.target.result;
-                        uploadedImageContainer.style.display = 'block';
-                    };
-                    reader.readAsDataURL(e.target.files[0]);
-                }
-            });
-
-            removeImageBtn.addEventListener('click', () => {
-                notificationImage.value = '';
-                uploadedImageContainer.style.display = 'none';
-            });
-
-            imageUploadArea.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                imageUploadArea.style.borderColor = '#1a73e8';
-                imageUploadArea.style.backgroundColor = 'rgba(26, 115, 232, 0.05)';
-            });
-
-            imageUploadArea.addEventListener('dragleave', () => {
-                imageUploadArea.style.borderColor = '#e0e0e0';
-                imageUploadArea.style.backgroundColor = 'transparent';
-            });
-
-            imageUploadArea.addEventListener('drop', (e) => {
-                e.preventDefault();
-                imageUploadArea.style.borderColor = '#e0e0e0';
-                imageUploadArea.style.backgroundColor = 'transparent';
-                if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-                    notificationImage.files = e.dataTransfer.files;
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        uploadedImage.src = e.target.result;
-                        uploadedImageContainer.style.display = 'block';
-                    };
-                    reader.readAsDataURL(e.dataTransfer.files[0]);
-                }
-            });
+                })
+                .catch(err => console.error('Error fetching regions:', err));
         }
     });
-    </script>
+
+    // Region change -> fetch wards
+    regionFilter.addEventListener('change', function () {
+        const district = districtFilter.value;
+        const region   = this.value;
+        wardFilter.innerHTML = '<option value="">All Wards</option>';
+
+        if (district && region) {
+            fetch(`/admin/dashboard/wards?district=${encodeURIComponent(district)}&region=${encodeURIComponent(region)}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (Array.isArray(data)) {
+                        data.forEach(ward => {
+                            const opt = document.createElement('option');
+                            opt.value = ward.id ?? ward;
+                            opt.textContent = ward.name ? `Ward ${ward.name}` : `Ward ${ward}`;
+                            wardFilter.appendChild(opt);
+                        });
+                    }
+                })
+                .catch(err => console.error('Error fetching wards:', err));
+        }
+    });
+
+    // =============================
+    // Modal functionality
+    // =============================
+    const modals = document.querySelectorAll('.modal');
+    const notifyButtons = document.querySelectorAll('.btn-notify, #compose-notification');
+    const viewButtons = document.querySelectorAll('.btn-view[data-issue]');
+    const closeButtons = document.querySelectorAll('.close-modal');
+
+    notifyButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            document.getElementById('notificationModal').classList.add('show');
+        });
+    });
+
+    viewButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            document.getElementById('issueDetailModal').classList.add('show');
+        });
+    });
+
+    closeButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            modals.forEach(modal => modal.classList.remove('show'));
+        });
+    });
+
+    window.addEventListener('click', (event) => {
+        modals.forEach(modal => {
+            if (event.target === modal) modal.classList.remove('show');
+        });
+    });
+
+    // =============================
+    // Chart initialization
+    // =============================
+    function initializeCharts(issueTypes, issueTrends) {
+        const issueTypeCtx = document.getElementById('issueTypeChart').getContext('2d');
+        if (window.issueTypeChart) window.issueTypeChart.destroy();
+        window.issueTypeChart = new Chart(issueTypeCtx, {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(issueTypes),
+                datasets: [{
+                    data: Object.values(issueTypes),
+                    backgroundColor: ['#1a73e8', '#4caf50', '#ff9800', '#9c27b0', '#f44336', '#607d8b'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'right' } }
+            }
+        });
+
+        const issueTrendCtx = document.getElementById('issueTrendChart').getContext('2d');
+        if (window.issueTrendChart) window.issueTrendChart.destroy();
+        window.issueTrendChart = new Chart(issueTrendCtx, {
+            type: 'line',
+            data: {
+                labels: issueTrends.map(item => item.date),
+                datasets: [{
+                    label: 'Issues Reported',
+                    data: issueTrends.map(item => item.count),
+                    backgroundColor: 'rgba(26, 115, 232, 0.1)',
+                    borderColor: '#1a73e8',
+                    borderWidth: 2,
+                    tension: 0.3,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: { y: { beginAtZero: true } }
+            }
+        });
+    }
+
+    // Init charts with backend data
+    initializeCharts(
+        {!! json_encode($issueTypes ?? []) !!},
+        {!! json_encode($issueTrends ?? []) !!}
+    );
+
+    // =============================
+    // Image upload functionality
+    // =============================
+    const imageUploadArea = document.getElementById('imageUploadArea');
+    const notificationImage = document.getElementById('notificationImage');
+    const uploadedImageContainer = document.getElementById('uploadedImageContainer');
+    const uploadedImage = document.getElementById('uploadedImage');
+    const removeImageBtn = document.getElementById('removeImageBtn');
+
+    if (imageUploadArea) {
+        imageUploadArea.addEventListener('click', () => notificationImage.click());
+        notificationImage.addEventListener('change', (e) => {
+            if (e.target.files && e.target.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    uploadedImage.src = e.target.result;
+                    uploadedImageContainer.style.display = 'block';
+                };
+                reader.readAsDataURL(e.target.files[0]);
+            }
+        });
+
+        removeImageBtn.addEventListener('click', () => {
+            notificationImage.value = '';
+            uploadedImageContainer.style.display = 'none';
+        });
+
+        imageUploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            imageUploadArea.style.borderColor = '#1a73e8';
+            imageUploadArea.style.backgroundColor = 'rgba(26, 115, 232, 0.05)';
+        });
+
+        imageUploadArea.addEventListener('dragleave', () => {
+            imageUploadArea.style.borderColor = '#e0e0e0';
+            imageUploadArea.style.backgroundColor = 'transparent';
+        });
+
+        imageUploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            imageUploadArea.style.borderColor = '#e0e0e0';
+            imageUploadArea.style.backgroundColor = 'transparent';
+            if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                notificationImage.files = e.dataTransfer.files;
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    uploadedImage.src = e.target.result;
+                    uploadedImageContainer.style.display = 'block';
+                };
+                reader.readAsDataURL(e.dataTransfer.files[0]);
+            }
+        });
+    }
+});
+</script>
+
 </body>
 </html>

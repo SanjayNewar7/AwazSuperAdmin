@@ -978,23 +978,24 @@
                     <div class="section-header">
                         <h2>Issue Analytics</h2>
                         <div class="filter-controls">
-                            <select>
-                                <option>All Districts</option>
-                                <option>Kathmandu</option>
-                                <option>Lalitpur</option>
-                                <option>Bhaktapur</option>
-                            </select>
-                            <select>
-                                <option>All Regions</option>
-                                <option>Urban</option>
-                                <option>Rural</option>
-                            </select>
-                            <select>
-                                <option>All Wards</option>
-                                <option>Ward 1</option>
-                                <option>Ward 2</option>
-                                <option>Ward 3</option>
-                            </select>
+                           {{-- District Dropdown --}}
+<select name="district" id="district" class="form-control">
+    <option value="">Select District</option>
+    @foreach($districts as $d)
+        <option value="{{ $d }}">{{ $d }}</option>
+    @endforeach
+</select>
+
+{{-- Region Dropdown (initially empty) --}}
+<select name="region" id="region" class="form-control">
+    <option value="">Select Region</option>
+</select>
+
+{{-- Ward Dropdown (initially empty) --}}
+<select name="ward" id="ward" class="form-control">
+    <option value="">Select Ward</option>
+</select>
+
                             <input type="date">
                         </div>
                     </div>
@@ -1809,244 +1810,230 @@
         </div>
     </div>
 
-    <script>
-        // Charts initialization
-        document.addEventListener('DOMContentLoaded', function() {
-            // Issue Type Chart
-            const issueTypeCtx = document.getElementById('issueTypeChart').getContext('2d');
-            const issueTypeChart = new Chart(issueTypeCtx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Infrastructure', 'Utility', 'Sanitation', 'Public Space', 'Security', 'Other'],
-                    datasets: [{
-                        data: [30, 25, 20, 15, 5, 5],
-                        backgroundColor: [
-                            '#1a73e8',
-                            '#4caf50',
-                            '#ff9800',
-                            '#9c27b0',
-                            '#f44336',
-                            '#607d8b'
-                        ],
-                        borderWidth: 0
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'right'
-                        }
-                    }
-                }
-            });
-
-            // Issue Trend Chart
-            const issueTrendCtx = document.getElementById('issueTrendChart').getContext('2d');
-            const issueTrendChart = new Chart(issueTrendCtx, {
-                type: 'line',
-                data: {
-                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
-                    datasets: [{
-                        label: 'Issues Reported',
-                        data: [120, 150, 180, 90, 130, 160, 200],
-                        backgroundColor: 'rgba(26, 115, 232, 0.1)',
-                        borderColor: '#1a73e8',
-                        borderWidth: 2,
-                        tension: 0.3,
-                        fill: true
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    }
-                }
-            });
-
-            // District Chart
-            const districtCtx = document.getElementById('districtChart').getContext('2d');
-            const districtChart = new Chart(districtCtx, {
-                type: 'bar',
-                data: {
-                    labels: ['Kathmandu', 'Lalitpur', 'Bhaktapur', 'Pokhara', 'Biratnagar'],
-                    datasets: [{
-                        label: 'Issues by District',
-                        data: [450, 320, 280, 190, 150],
-                        backgroundColor: '#1a73e8',
-                        borderWidth: 0
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    }
-                }
-            });
-
-            // Demographics Chart
-            const demographicsCtx = document.getElementById('demographicsChart').getContext('2d');
-            const demographicsChart = new Chart(demographicsCtx, {
-                type: 'pie',
-                data: {
-                    labels: ['18-24', '25-34', '35-44', '45-54', '55+'],
-                    datasets: [{
-                        data: [25, 35, 20, 12, 8],
-                        backgroundColor: [
-                            '#1a73e8',
-                            '#4caf50',
-                            '#ff9800',
-                            '#9c27b0',
-                            '#f44336'
-                        ],
-                        borderWidth: 0
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'right'
-                        }
-                    }
-                }
-            });
-
-            // Modal functionality
-            const modals = document.querySelectorAll('.modal');
-            const notifyButtons = document.querySelectorAll('.btn-notify, #compose-notification');
-            const viewButtons = document.querySelectorAll('.btn-view');
-            const closeButtons = document.querySelectorAll('.close-modal');
-
-            // Notification modal
-            notifyButtons.forEach(button => {
-                button.addEventListener('click', () => {
-                    document.getElementById('notificationModal').style.display = 'flex';
-                });
-            });
-
-            // Issue detail modal
-            viewButtons.forEach(button => {
-                if (button.getAttribute('data-issue')) {
-                    button.addEventListener('click', () => {
-                        document.getElementById('issueDetailModal').style.display = 'flex';
-                    });
-                }
-            });
-
-            // Close modals
-            closeButtons.forEach(button => {
-                button.addEventListener('click', () => {
-                    modals.forEach(modal => {
-                        modal.style.display = 'none';
-                    });
-                });
-            });
-
-            window.addEventListener('click', (event) => {
-                modals.forEach(modal => {
-                    if (event.target === modal) {
-                        modal.style.display = 'none';
-                    }
-                });
-            });
-
-            // Menu navigation
-            const menuItems = document.querySelectorAll('.menu-item');
-            const contentSections = document.querySelectorAll('.content-section');
-
-            menuItems.forEach(item => {
-                if (item.id !== 'logout-btn') {
-                    item.addEventListener('click', () => {
-                        const sectionId = item.getAttribute('data-section') + '-section';
-
-                        // Update active menu item
-                        menuItems.forEach(menuItem => {
-                            menuItem.classList.remove('active');
-                        });
-                        item.classList.add('active');
-
-                        // Show corresponding section
-                        contentSections.forEach(section => {
-                            section.classList.remove('active');
-                        });
-                        document.getElementById(sectionId).classList.add('active');
-                    });
-                }
-            });
-
-            // Logout functionality
-            document.getElementById('logout-btn').addEventListener('click', () => {
-                if (confirm('Are you sure you want to logout?')) {
-                    window.location.href = 'login.html';
-                }
-            });
-
-            // Image upload functionality
-            const imageUploadArea = document.getElementById('imageUploadArea');
-            const notificationImage = document.getElementById('notificationImage');
-            const uploadedImageContainer = document.getElementById('uploadedImageContainer');
-            const uploadedImage = document.getElementById('uploadedImage');
-            const removeImageBtn = document.getElementById('removeImageBtn');
-
-            imageUploadArea.addEventListener('click', () => {
-                notificationImage.click();
-            });
-
-            notificationImage.addEventListener('change', (e) => {
-                if (e.target.files && e.target.files[0]) {
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        uploadedImage.src = e.target.result;
-                        uploadedImageContainer.style.display = 'block';
-                    };
-                    reader.readAsDataURL(e.target.files[0]);
-                }
-            });
-
-            removeImageBtn.addEventListener('click', () => {
-                notificationImage.value = '';
-                uploadedImageContainer.style.display = 'none';
-            });
-
-            // Drag and drop for image upload
-            imageUploadArea.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                imageUploadArea.style.borderColor = '#1a73e8';
-                imageUploadArea.style.backgroundColor = 'rgba(26, 115, 232, 0.05)';
-            });
-
-            imageUploadArea.addEventListener('dragleave', () => {
-                imageUploadArea.style.borderColor = '#e0e0e0';
-                imageUploadArea.style.backgroundColor = 'transparent';
-            });
-
-            imageUploadArea.addEventListener('drop', (e) => {
-                e.preventDefault();
-                imageUploadArea.style.borderColor = '#e0e0e0';
-                imageUploadArea.style.backgroundColor = 'transparent';
-
-                if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-                    notificationImage.files = e.dataTransfer.files;
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        uploadedImage.src = e.target.result;
-                        uploadedImageContainer.style.display = 'block';
-                    };
-                    reader.readAsDataURL(e.dataTransfer.files[0]);
-                }
-            });
+   <script>
+    // Charts initialization
+    document.addEventListener('DOMContentLoaded', function() {
+        /** =========================
+         *  CHARTS
+         *  ========================= */
+        const issueTypeCtx = document.getElementById('issueTypeChart').getContext('2d');
+        const issueTypeChart = new Chart(issueTypeCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Infrastructure', 'Utility', 'Sanitation', 'Public Space', 'Security', 'Other'],
+                datasets: [{
+                    data: [30, 25, 20, 15, 5, 5],
+                    backgroundColor: ['#1a73e8','#4caf50','#ff9800','#9c27b0','#f44336','#607d8b'],
+                    borderWidth: 0
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } } }
         });
-    </script>
+
+        const issueTrendCtx = document.getElementById('issueTrendChart').getContext('2d');
+        const issueTrendChart = new Chart(issueTrendCtx, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+                datasets: [{
+                    label: 'Issues Reported',
+                    data: [120, 150, 180, 90, 130, 160, 200],
+                    backgroundColor: 'rgba(26, 115, 232, 0.1)',
+                    borderColor: '#1a73e8',
+                    borderWidth: 2,
+                    tension: 0.3,
+                    fill: true
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+        });
+
+        const districtCtx = document.getElementById('districtChart').getContext('2d');
+        const districtChart = new Chart(districtCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Kathmandu', 'Lalitpur', 'Bhaktapur', 'Pokhara', 'Biratnagar'],
+                datasets: [{ label: 'Issues by District', data: [450, 320, 280, 190, 150], backgroundColor: '#1a73e8', borderWidth: 0 }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+        });
+
+        const demographicsCtx = document.getElementById('demographicsChart').getContext('2d');
+        const demographicsChart = new Chart(demographicsCtx, {
+            type: 'pie',
+            data: {
+                labels: ['18-24', '25-34', '35-44', '45-54', '55+'],
+                datasets: [{
+                    data: [25, 35, 20, 12, 8],
+                    backgroundColor: ['#1a73e8','#4caf50','#ff9800','#9c27b0','#f44336'],
+                    borderWidth: 0
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } } }
+        });
+
+        /** =========================
+         *  MODALS
+         *  ========================= */
+        const modals = document.querySelectorAll('.modal');
+        const notifyButtons = document.querySelectorAll('.btn-notify, #compose-notification');
+        const viewButtons = document.querySelectorAll('.btn-view');
+        const closeButtons = document.querySelectorAll('.close-modal');
+
+        notifyButtons.forEach(button => {
+            button.addEventListener('click', () => document.getElementById('notificationModal').style.display = 'flex');
+        });
+
+        viewButtons.forEach(button => {
+            if (button.getAttribute('data-issue')) {
+                button.addEventListener('click', () => document.getElementById('issueDetailModal').style.display = 'flex');
+            }
+        });
+
+        closeButtons.forEach(button => {
+            button.addEventListener('click', () => modals.forEach(modal => modal.style.display = 'none'));
+        });
+
+        window.addEventListener('click', (event) => {
+            modals.forEach(modal => { if (event.target === modal) modal.style.display = 'none'; });
+        });
+
+        /** =========================
+         *  MENU NAVIGATION
+         *  ========================= */
+        const menuItems = document.querySelectorAll('.menu-item');
+        const contentSections = document.querySelectorAll('.content-section');
+
+        menuItems.forEach(item => {
+            if (item.id !== 'logout-btn') {
+                item.addEventListener('click', () => {
+                    const sectionId = item.getAttribute('data-section') + '-section';
+                    menuItems.forEach(menuItem => menuItem.classList.remove('active'));
+                    item.classList.add('active');
+                    contentSections.forEach(section => section.classList.remove('active'));
+                    document.getElementById(sectionId).classList.add('active');
+                });
+            }
+        });
+
+        /** =========================
+         *  LOGOUT
+         *  ========================= */
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            if (confirm('Are you sure you want to logout?')) window.location.href = 'login.html';
+        });
+
+        /** =========================
+         *  IMAGE UPLOAD
+         *  ========================= */
+        const imageUploadArea = document.getElementById('imageUploadArea');
+        const notificationImage = document.getElementById('notificationImage');
+        const uploadedImageContainer = document.getElementById('uploadedImageContainer');
+        const uploadedImage = document.getElementById('uploadedImage');
+        const removeImageBtn = document.getElementById('removeImageBtn');
+
+        imageUploadArea.addEventListener('click', () => notificationImage.click());
+
+        notificationImage.addEventListener('change', (e) => {
+            if (e.target.files && e.target.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    uploadedImage.src = e.target.result;
+                    uploadedImageContainer.style.display = 'block';
+                };
+                reader.readAsDataURL(e.target.files[0]);
+            }
+        });
+
+        removeImageBtn.addEventListener('click', () => {
+            notificationImage.value = '';
+            uploadedImageContainer.style.display = 'none';
+        });
+
+        imageUploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            imageUploadArea.style.borderColor = '#1a73e8';
+            imageUploadArea.style.backgroundColor = 'rgba(26, 115, 232, 0.05)';
+        });
+
+        imageUploadArea.addEventListener('dragleave', () => {
+            imageUploadArea.style.borderColor = '#e0e0e0';
+            imageUploadArea.style.backgroundColor = 'transparent';
+        });
+
+        imageUploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            imageUploadArea.style.borderColor = '#e0e0e0';
+            imageUploadArea.style.backgroundColor = 'transparent';
+
+            if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                notificationImage.files = e.dataTransfer.files;
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    uploadedImage.src = e.target.result;
+                    uploadedImageContainer.style.display = 'block';
+                };
+                reader.readAsDataURL(e.dataTransfer.files[0]);
+            }
+        });
+
+        /** =========================
+         *  CASCADING DROPDOWNS
+         *  ========================= */
+        const districtSelect = document.getElementById('district');
+        const regionSelect = document.getElementById('region');
+        const wardSelect = document.getElementById('ward');
+
+        if (districtSelect && regionSelect && wardSelect) {
+            districtSelect.addEventListener('change', function() {
+    const district = this.value;
+    console.log('Selected District:', district); // Debug: Log selected district
+
+    regionSelect.innerHTML = '<option value="">Select Region</option>';
+    wardSelect.innerHTML = '<option value="">Select Ward</option>';
+
+    if (district) {
+        fetch(`/admin/get-regions?district=${encodeURIComponent(district)}`)
+            .then(res => {
+                console.log('Response Status:', res.status); // Debug: Log response status
+                return res.json();
+            })
+            .then(data => {
+                console.log('Fetched Regions:', data); // Debug: Log fetched regions
+                data.forEach(region => {
+                    const opt = document.createElement('option');
+                    opt.value = region;
+                    opt.textContent = region;
+                    regionSelect.appendChild(opt);
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching regions:', error); // Debug: Log errors
+            });
+    }
+});
+            regionSelect.addEventListener('change', function() {
+                const district = districtSelect.value;
+                const region = this.value;
+
+                wardSelect.innerHTML = '<option value="">Select Ward</option>';
+
+                if (district && region) {
+                    fetch(`/admin/get-wards?district=${district}&region=${region}`)
+                        .then(res => res.json())
+                        .then(data => {
+                            data.forEach(ward => {
+                                const opt = document.createElement('option');
+                                opt.value = ward;
+                                opt.textContent = ward;
+                                wardSelect.appendChild(opt);
+                            });
+                        });
+                }
+            });
+        }
+    });
+</script>
+
 </body>
 </html>

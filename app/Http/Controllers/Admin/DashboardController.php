@@ -10,10 +10,11 @@ use App\Models\Issue;
 use App\Models\Post;
 use App\Models\DistrictData;
 use DB;
+use Illuminate\Support\Facades\Log;
 
 class DashboardController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         // Get dashboard statistics
         $stats = [
@@ -30,7 +31,18 @@ class DashboardController extends Controller
             ->get();
 
         // Get districts for filter
-        $districts = DistrictData::getDistricts();
+
+       // Selected filters
+    $selectedDistrict = $request->input('district');
+    log::info('Selected District: ' . $selectedDistrict);
+    log::info('request : ' . json_encode($request->all()));
+
+    // Fetch districts and regions
+    $districts = DistrictData::getDistricts();
+    Log::info('Districts fetched: ' . json_encode($districts));
+
+    $regions = $selectedDistrict ? DistrictData::getRegions($selectedDistrict) : [];
+    Log::info('Regions fetched: ' . json_encode($regions));
 
         // Get issue types data
         $issueTypes = Issue::select('report_type', DB::raw('count(*) as count'))
@@ -38,6 +50,7 @@ class DashboardController extends Controller
             ->get()
             ->pluck('count', 'report_type')
             ->toArray();
+        Log::info('Issue types data: ' . json_encode($issueTypes));
 
         // Get issue trends data
         $issueTrends = Issue::select(
@@ -133,14 +146,14 @@ class DashboardController extends Controller
         ]);
     }
 
-    public function getRegions(Request $request)
-    {
-        $district = $request->input('district');
-        $regions = DistrictData::getRegions($district);
-
-        return response()->json($regions);
-    }
-
+  public function getRegions(Request $request)
+{
+    $district = $request->input('district');
+    Log::info('getRegions called with district: ' . $district); // Debug
+    $regions = DistrictData::getRegions($district);
+    Log::info('Regions returned: ' . json_encode($regions)); // Debug
+    return response()->json($regions);
+}
     public function getWards(Request $request)
     {
         $district = $request->input('district');

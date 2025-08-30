@@ -18,13 +18,9 @@ class IssueController extends Controller
         $query = Issue::with('user');
 
         // Apply filters
-        if ($request->has('status')) {
-            if ($request->status === 'resolved') {
-                $query->where('fixed_count', '>', 0);
-            } elseif ($request->status === 'pending') {
-                $query->where('fixed_count', 0);
-            }
-        }
+        if ($request->filled('status')) {
+    $query->where('status', $request->status);
+}
 
         if ($request->has('district')) {
             $query->where('district', $request->district);
@@ -87,6 +83,8 @@ class IssueController extends Controller
             $imagePath = $request->file('image')->store('notifications', 'public');
         }
 
+
+
         // Create notifications
         foreach ($users as $user) {
             Notification::create([
@@ -104,6 +102,19 @@ class IssueController extends Controller
 
         return redirect()->back()->with('success', 'Notification sent to ' . count($users) . ' users.');
     }
+
+    public function updateStatus(Request $request, $id)
+{
+    $request->validate([
+        'status' => 'required|in:pending,in_progress,resolved,rejected'
+    ]);
+
+    $issue = Issue::findOrFail($id);
+    $issue->status = $request->status;
+    $issue->save();
+
+    return redirect()->back()->with('success', 'Issue status updated successfully.');
+}
 
     private function getTargetUsers($issue, $target)
     {

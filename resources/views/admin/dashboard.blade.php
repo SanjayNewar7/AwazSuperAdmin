@@ -55,23 +55,23 @@
     <div class="section-header">
         <h2>Issue Analytics</h2>
         <div class="filter-controls">
-            <select id="districtFilter">
-                <option value="">All Districts</option>
-                @foreach($districts as $district)
-                    <option value="{{ $district }}">{{ $district }}</option>
-                @endforeach
-            </select>
-            <select id="regionFilter">
-                <option value="">All Regions</option>
-                <option value="urban">Urban</option>
-                <option value="rural">Rural</option>
-            </select>
-            <select id="wardFilter">
-                <option value="">All Wards</option>
-                @for($i = 1; $i <= 35; $i++)
-                    <option value="{{ $i }}">Ward {{ $i }}</option>
-                @endfor
-            </select>
+                 {{-- District Dropdown --}}
+<select name="district" id="district" class="form-control">
+    <option value="">Select District</option>
+    @foreach($districts as $d)
+        <option value="{{ $d }}">{{ $d }}</option>
+    @endforeach
+</select>
+
+{{-- Region Dropdown (initially empty) --}}
+<select name="region" id="region" class="form-control">
+    <option value="">Select Region</option>
+</select>
+
+{{-- Ward Dropdown (initially empty) --}}
+<select name="ward" id="ward" class="form-control">
+    <option value="">Select Ward</option>
+</select>
             <input type="date" id="dateFilter">
         </div>
     </div>

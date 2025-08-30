@@ -25,6 +25,9 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('admin.logout');
         Route::get('analytics', [DashboardController::class, 'getAnalytics'])->name('admin.analytics');
         Route::get('regions', [DashboardController::class, 'getRegions'])->name('admin.regions');
         Route::get('wards', [DashboardController::class, 'getWards'])->name('admin.wards');
+        Route::get('/admin/get-regions', [DashboardController::class, 'getRegions']);
+        Route::get('/admin/get-wards', [DashboardController::class, 'getWards']);
+
 
         // Users Routes
         Route::get('users', [UserController::class, 'index'])->name('admin.users.index');
@@ -37,5 +40,7 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('admin.logout');
         Route::get('issues/{id}', [IssueController::class, 'show'])->name('admin.issues.show');
         Route::delete('issues/{id}', [IssueController::class, 'delete'])->name('admin.issues.delete');
         Route::post('issues/{id}/notify', [IssueController::class, 'sendNotification'])->name('admin.issues.notify');
+        Route::post('issues/{id}/status', [IssueController::class, 'updateStatus'])->name('admin.issues.updateStatus');
+
     });
 });

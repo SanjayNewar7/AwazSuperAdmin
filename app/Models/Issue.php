@@ -46,4 +46,8 @@ class Issue extends Model
     {
         return $this->hasMany(IssueComment::class, 'issue_id', 'id');
     }
+    public function getFormattedLocationAttribute()
+{
+    return "{$this->district}-{$this->ward}, {$this->area_name}";
+}
 }
